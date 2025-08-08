@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Responsive Image Gallery</title>
+  <style>
+    :root{
+      --bg: #0f1724;
+      --card: #0b1220;
+      --accent: #7c3aed;
+      --muted: #94a3b8;
+      --radius: 12px;
+      --gap: 1rem;
+    }
+
+    *{box-sizing: border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(180deg,#071026 0%, #071826 60%);
+      color: #e6eef8;
+      padding:2rem;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;gap:1rem}
+    h1{font-size:3rem;margin:0}
+    p.lead{margin:0;color:var(--muted);font-size:0.95rem}
+
+    /* Filter buttons */
+    .filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
+    .filters button{
+      background:transparent;border:1px solid rgba(255,255,255,0.06);padding:.45rem .65rem;border-radius:999px;color:var(--muted);cursor:pointer;backdrop-filter: blur(4px);
+      transition:all .18s ease; font-size:0.9rem
+    }
+    .filters button.active{background:linear-gradient(90deg,var(--accent),#06b6d4);color:#071026;border:0;box-shadow:0 6px 18px rgba(124,58,237,0.18);transform:translateY(-2px)}
+
+    /* Gallery grid */
+    .gallery{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:var(--gap);
+    }
+
+    .card{
+      position:relative;border-radius:var(--radius);overflow:hidden;box-shadow:0 6px 30px rgba(2,6,23,0.6);background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);
+      cursor:pointer;transform:translateZ(0);
+    }
+
+    .card img{display:block;width:100%;height:220px;object-fit:cover;transition:transform .45s cubic-bezier(.2,.9,.2,1),filter .3s ease;will-change:transform;}
+
+    /* Hover effects */
+    .card:hover img{transform:scale(1.06);filter:brightness(.95) contrast(1.02)}
+    .card .meta{
+      position:absolute;left:0;right:0;bottom:0;padding:.65rem .7rem;background:linear-gradient(180deg,transparent,rgba(3,7,18,0.6));color:#fff;display:flex;align-items:center;justify-content:space-between;gap:.5rem
+    }
+    .meta .title{font-size:.95rem;font-weight:600}
+    .meta .tag{font-size:0.8rem;color:var(--muted);opacity:.95}
+
+    /* Small label in top-left */
+    .card .label{position:absolute;left:.6rem;top:.6rem;background:rgba(0,0,0,0.45);padding:.25rem .45rem;border-radius:8px;font-size:.75rem;color:var(--muted)}
+
+    /* Lightbox modal */
+    .lightbox{
+      position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,23,0.7);z-index:1200;padding:2rem
+    }
+    .lightbox.open{display:flex}
+
+    .lightbox .panel{max-width:1000px;max-height:90vh;width:100%;background:linear-gradient(180deg,#071028,#071022);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;}
+    .lightbox .image-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;padding:1rem}
+    .lightbox img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:8px;}
+
+    .lightbox .info{padding:0.8rem 1rem;background:rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .lightbox .info .caption{color:var(--muted)}
+
+    .controls{display:flex;gap:.5rem}
+    .btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted);padding:.4rem .6rem;border-radius:8px;cursor:pointer}
+    .icon-btn{width:44px;height:44px;border-radius:10px;display:inline-grid;place-items:center}
+
+    .navbtn{position:absolute;top:50%;transform:translateY(-50%);background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border-radius:10px;padding:.45rem;cursor:pointer;border:0}
+    .navbtn.left{left:8px}
+    .navbtn.right{right:8px}
+
+    /* Responsive tweaks */
+    @media (max-width:640px){
+      .card img{height:160px}
+      .lightbox .panel{max-height:92vh}
+    }
+
+    /* small helper */
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Image Gallery</h1>
+        <p class="lead">Responsive gallery with lightbox, navigation, hover effects & filters.</p>
+      </div>
+      <div class="controls">
+        <button id="shuffle" class="btn">Shuffle</button>
+        <button id="open-first" class="btn">Open first</button>
+      </div>
+    </header>
+
+    <div class="filters" aria-label="Image categories">
+      <button class="active" data-filter="all">All</button>
+      <button data-filter="nature">Nature</button>
+      <button data-filter="city">City</button>
+      <button data-filter="people">People</button>
+    </div>
+
+    <main class="gallery" id="gallery">
+      
+      <figure class="card" data-id="0" data-category="nature" data-title="Misty Mountains">
+        <span class="label">Nature</span>
+        <img loading="lazy" src="https://picsum.photos/id/1015/800/600" alt="Misty Mountains"/>
+        <figcaption class="meta"><span class="title">Misty Mountains</span><span class="tag">Nature</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="1" data-category="city" data-title="City Skyline">
+        <span class="label">City</span>
+        <img loading="lazy" src="https://picsum.photos/id/1011/800/600" alt="City Skyline"/>
+        <figcaption class="meta"><span class="title">City Skyline</span><span class="tag">City</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="2" data-category="people" data-title="Smiling Artist">
+        <span class="label">People</span>
+        <img loading="lazy" src="https://picsum.photos/id/1005/800/600" alt="Smiling Artist"/>
+        <figcaption class="meta"><span class="title">Smiling Artist</span><span class="tag">People</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="3" data-category="nature" data-title="Forest Path">
+        <span class="label">Nature</span>
+        <img loading="lazy" src="https://picsum.photos/id/1040/800/600" alt="Forest Path"/>
+        <figcaption class="meta"><span class="title">Forest Path</span><span class="tag">Nature</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="4" data-category="city" data-title="Neon Street">
+        <span class="label">City</span>
+        <img loading="lazy" src="https://picsum.photos/id/1016/800/600" alt="Neon Street"/>
+        <figcaption class="meta"><span class="title">Neon Street</span><span class="tag">City</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="5" data-category="people" data-title="Portrait Study">
+        <span class="label">People</span>
+        <img loading="lazy" src="https://picsum.photos/id/1027/800/600" alt="Portrait Study"/>
+        <figcaption class="meta"><span class="title">Portrait Study</span><span class="tag">People</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="6" data-category="nature" data-title="Sunset Lake">
+        <span class="label">Nature</span>
+        <img loading="lazy" src="https://picsum.photos/id/1003/800/600" alt="Sunset Lake"/>
+        <figcaption class="meta"><span class="title">Sunset Lake</span><span class="tag">Nature</span></figcaption>
+      </figure>
+
+      <figure class="card" data-id="7" data-category="city" data-title="Old Town">
+        <span class="label">City</span>
+        <img loading="lazy" src="https://picsum.photos/id/1025/800/600" alt="Old Town"/>
+        <figcaption class="meta"><span class="title">Old Town</span><span class="tag">City</span></figcaption>
+      </figure>
+
+    </main>
+  </div>
+
+  <div class="lightbox" id="lightbox" role="dialog" aria-hidden="true" aria-label="Image viewer">
+    <div class="panel" role="document">
+      <div class="image-wrap">
+        <button class="navbtn left" id="prevBtn" aria-label="Previous image">◀</button>
+        <img id="lightboxImage" src="" alt="" />
+        <button class="navbtn right" id="nextBtn" aria-label="Next image">▶</button>
+      </div>
+      <div class="info">
+        <div>
+          <div id="caption" class="caption">Caption</div>
+          <div id="counter" class="caption" style="color:var(--muted);font-size:.875rem;margin-top:.2rem">0 / 0</div>
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center">
+          <button id="closeBtn" class="btn">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const gallery = document.getElementById('gallery');
+      const cards = Array.from(gallery.querySelectorAll('.card'));
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightboxImage');
+      const captionEl = document.getElementById('caption');
+      const counterEl = document.getElementById('counter');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const closeBtn = document.getElementById('closeBtn');
+      const filterButtons = document.querySelectorAll('.filters button');
+      const shuffleBtn = document.getElementById('shuffle');
+      const openFirstBtn = document.getElementById('open-first');
+
+      let visibleCards = cards.slice(); 
+      let currentIndex = 0;
+
+      function openLightbox(index){
+        const card = visibleCards[index];
+        if(!card) return;
+        const img = card.querySelector('img');
+        lightboxImage.src = img.src;
+        lightboxImage.alt = img.alt || card.dataset.title || '';
+        captionEl.textContent = card.dataset.title || img.alt || '';
+        counterEl.textContent = (index+1) + ' / ' + visibleCards.length;
+        currentIndex = index;
+        lightbox.classList.add('open');
+        lightbox.setAttribute('aria-hidden','false');
+        // Preload neighbors
+        preloadImage((index+1) % visibleCards.length);
+        preloadImage((index-1 + visibleCards.length) % visibleCards.length);
+      }
+
+      function closeLightbox(){
+        lightbox.classList.remove('open');
+        lightbox.setAttribute('aria-hidden','true');
+      }
+
+      function showNext(){
+        if(visibleCards.length === 0) return;
+        const nextIndex = (currentIndex + 1) % visibleCards.length;
+        openLightbox(nextIndex);
+      }
+      function showPrev(){
+        if(visibleCards.length === 0) return;
+        const prevIndex = (currentIndex - 1 + visibleCards.length) % visibleCards.length;
+        openLightbox(prevIndex);
+      }
+
+      function preloadImage(cardIndex){
+        const card = visibleCards[cardIndex];
+        if(!card) return;
+        const src = card.querySelector('img').src;
+        const img = new Image(); img.src = src;
+      }
+
+      
+      cards.forEach((card, idx) => {
+        card.addEventListener('click', () => {
+          const visibleIndex = visibleCards.indexOf(card);
+          openLightbox(visibleIndex >= 0 ? visibleIndex : 0);
+        });
+      });
+
+      
+      nextBtn.addEventListener('click', showNext);
+      prevBtn.addEventListener('click', showPrev);
+      closeBtn.addEventListener('click', closeLightbox);
+      lightbox.addEventListener('click', (e) => {
+        if(e.target === lightbox) closeLightbox();
+      });
+
+    
+      document.addEventListener('keydown', (e) => {
+        if(lightbox.classList.contains('open')){
+          if(e.key === 'ArrowRight') showNext();
+          if(e.key === 'ArrowLeft') showPrev();
+          if(e.key === 'Escape') closeLightbox();
+        }
+      });
+
+    
+      function applyFilter(filter){
+        filterButtons.forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+        if(filter === 'all'){
+          visibleCards = cards.slice();
+        } else {
+          visibleCards = cards.filter(c => c.dataset.category === filter);
+        }
+
+        cards.forEach(c => {
+          const isShown = visibleCards.includes(c);
+          c.style.display = isShown ? '' : 'none';
+        });
+      }
+
+      filterButtons.forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.filter)));
+      shuffleBtn.addEventListener('click', () => {
+        const frag = document.createDocumentFragment();
+        const arr = visibleCards.slice();
+        for(let i = arr.length - 1; i > 0; i--){
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        arr.forEach(c => frag.appendChild(c));
+        gallery.appendChild(frag);
+        const all = Array.from(gallery.querySelectorAll('.card'));
+        visibleCards = all.filter(c => c.style.display !== 'none');
+      });
+
+      openFirstBtn.addEventListener('click', () => {
+        applyFilter('all');
+        setTimeout(() => openLightbox(0), 80);
+      });
+
+      
+      applyFilter('all');
+
+      
+      document.addEventListener('focusin', (e) => {
+        if(lightbox.classList.contains('open')){
+          if(!lightbox.contains(e.target)){
+            closeBtn.focus();
+          }
+        }
+      });
+
+    })();
+  </script>
+</body>
+</html>
