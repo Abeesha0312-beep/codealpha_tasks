@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeAlpha Tasks - Abeesha</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #a18cd1, #0f1724);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 800px;
+    }
+    h1 {
+      color: white;
+      margin-bottom: 20px;
+    }
+    .tasks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+    .task-card {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 15px;
+      padding: 20px;
+      width: 220px;
+      text-align: center;
+      transition: transform 0.3s ease, background 0.3s ease;
+      color: white;
+      text-decoration: none;
+    }
+    .task-card:hover {
+      transform: translateY(-8px);
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .task-icon {
+      font-size: 40px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>🚀 My CodeAlpha Tasks</h1>
+    <div class="tasks">
+      <a href="task1-image-gallery.html" class="task-card">
+        <div class="task-icon">🖼️</div>
+        <h3>Image Gallery</h3>
+      </a>
+      <a href="task2-Calculator.html" class="task-card">
+        <div class="task-icon">🧮</div>
+        <h3>Calculator</h3>
+      </a>
+      <a href="task3-music-player.html" class="task-card">
+        <div class="task-icon">🎵</div>
+        <h3>Music Player</h3>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
